@@ -1,0 +1,28 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Subscriptions{% endblock title %}
+{% block bodyclass %}sidebar-mini layout-fixed{% endblock bodyclass %}
+
+{% block content %}
+  <!-- Subscriptions placeholder page -->
+  <div class="content-wrapper">
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Subscriptions</h1>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12 col-md-8 col-lg-6 d-flex align-items-stretch">
+            {% include 'includes/subscription_card.html' with plan_id=plan.plan_id plan_name=plan.plan_name price=plan.price features=plan.features badge=plan.badge %}
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+{% endblock content %}

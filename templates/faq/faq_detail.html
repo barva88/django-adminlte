@@ -1,0 +1,51 @@
+{% extends 'layouts/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1>{{ article.title }}</h1>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-body">
+              {{ article.content|linebreaks }}
+              {% if article.attachments.all %}
+                <hr>
+                <h5>Adjuntos</h5>
+                <ul>
+                  {% for f in article.attachments.all %}
+                    <li><a href="{{ f.file.url }}">{{ f.description|default:f.file.name }}</a></li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <p>Vistas: {{ article.view_count }}</p>
+              <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="helpful" value="true">
+                <button class="btn btn-success btn-block">Sí, me fue útil</button>
+              </form>
+              <form method="post" action="" class="mt-2">
+                {% csrf_token %}
+                <input type="hidden" name="helpful" value="false">
+                <button class="btn btn-danger btn-block">No, no fue útil</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'layouts/base.html' %}
+
+{% block bodyclass %} hold-transition sidebar-mini layout-fixed {% endblock bodyclass %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{ attempts.count }}</h3>
+              <p>Recent Attempts</p>
+            </div>
+            <div class="icon"><i class="fas fa-clipboard-list"></i></div>
+            <a href="{% url 'exams:exam_list' %}" class="small-box-footer">View Exams <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="small-box bg-success">
+            <div class="inner">
+              <h3>{{ credits }}</h3>
+              <p>Credits Remaining</p>
+            </div>
+            <div class="icon"><i class="fas fa-coins"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h4>Recent Attempts</h4>
+          <table class="table table-striped">
+            <thead><tr><th>ID</th><th>Exam</th><th>Score</th><th>Passed</th><th>Finished</th></tr></thead>
+            <tbody>
+              {% for a in attempts %}
+              <tr><td>{{ a.id }}</td><td>{{ a.exam.title }}</td><td>{{ a.score }}</td><td>{{ a.passed }}</td><td>{{ a.finished_at }}</td></tr>
+              {% empty %}
+              <tr><td colspan="5">No attempts yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+{% endblock %}

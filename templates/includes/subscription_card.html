@@ -1,0 +1,51 @@
+{# Reusable subscription plan card with modal confirmation #}
+<div class="card card-primary">
+  <div class="card-header">
+    <h3 class="card-title">{{ plan_name }}</h3>
+    <div class="card-tools">
+      {% if badge %}<span class="badge bg-success">{{ badge }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="mb-0">${{ price }}</h2>
+        <small class="text-muted">per month</small>
+      </div>
+      <div>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#subscriptionModal-{{ plan_id }}">Subscribe</button>
+      </div>
+    </div>
+
+    <ul class="list-unstyled">
+      {% for feat in features %}
+        <li><i class="fas fa-check text-success mr-2"></i>{{ feat }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="subscriptionModal-{{ plan_id }}" tabindex="-1" role="dialog" aria-labelledby="subscriptionModalLabel-{{ plan_id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="card-body h-100 w-100">
+          <h5 class="modal-title" id="subscriptionModalLabel-{{ plan_id }}">Confirm Subscription</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post" action="{% url 'subscriptions:subscribe' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <p>Are you sure you want to subscribe to <strong>{{ plan_name }}</strong> for <strong>${{ price }}/month</strong>?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Confirm</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+        <div class="modal fade" id="subscriptionModal-{{ plan_id }}" tabindex="-1" role="dialog" aria-labelledby="subscriptionModalLabel-{{ plan_id }}" aria-hidden="true">
+</div>

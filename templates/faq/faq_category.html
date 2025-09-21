@@ -1,0 +1,34 @@
+{% extends 'layouts/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <h1>{{ category.name }}</h1>
+    </div>
+  </section>
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr><th>Título</th><th>Publicado</th><th>Actualizado</th></tr>
+            </thead>
+            <tbody>
+              {% for a in articles %}
+              <tr>
+                <td><a href="{% url 'faq:article_detail' a.slug %}">{{ a.title }}</a></td>
+                <td>{{ a.is_published }}</td>
+                <td>{{ a.updated_at }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

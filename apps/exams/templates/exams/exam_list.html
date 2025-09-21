@@ -1,0 +1,89 @@
+{% extends 'layouts/base.html' %}
+
+{% block bodyclass %} hold-transition sidebar-mini layout-fixed {% endblock bodyclass %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Exams</h1>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <form method="get" class="mb-3">
+            <div class="input-group">
+              <input type="text" name="q" class="form-control" placeholder="Search exams..." value="{{ q }}">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+              </div>
+            </div>
+          </form>
+
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Score</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for exam in exams %}
+              <tr>
+                <td>{{ exam.title }}</td>
+                <td>{{ exam.category }}</td>
+                <td>
+                  {% if score_map and exam.id in score_map %}
+                    {{ score_map|dict_get:exam.id }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>
+                  {% if attempt_map and exam.id in attempt_map %}
+                    <a href="{% url 'exams:exam_take' exam.id %}" class="btn btn-warning btn-sm">Continuar</a>
+                  {% else %}
+                    <form method="post" action="{% url 'exams:exam_take' exam.id %}" style="display:inline">{% csrf_token %}
+                      <input type="hidden" name="action" value="start">
+                      <button class="btn btn-primary btn-sm" type="submit">Comenzar</button>
+                    </form>
+                    <a href="{% url 'exams:exam_detail' exam.id %}" class="btn btn-secondary btn-sm">Detalles</a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4">No exams found</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% if exams.has_other_pages %}
+          <nav>
+            <ul class="pagination">
+              {% if exams.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page={{ exams.previous_page_number }}">Previous</a></li>
+              {% endif %}
+              {% for i in exams.paginator.page_range %}
+              <li class="page-item {% if exams.number == i %}active{% endif %}"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+              {% endfor %}
+              {% if exams.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ exams.next_page_number }}">Next</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

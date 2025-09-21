@@ -1,0 +1,25 @@
+{% extends 'layouts/base.html' %}
+
+{% block bodyclass %} hold-transition sidebar-mini layout-fixed {% endblock bodyclass %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content">
+    <div class="container-fluid">
+      <h2>Result for Attempt {{ attempt.id }}</h2>
+      <div class="card">
+        <div class="card-body">
+          <p>Score: {{ attempt.score }}%</p>
+          <p>Passed: {{ attempt.passed }}</p>
+          <h4>Answers</h4>
+          <ul>
+            {% for a in attempt.answers.all %}
+            <li>{{ a.question.text }} - Your choice: {{ a.choice }} - Correct: {{ a.is_correct }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

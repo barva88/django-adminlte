@@ -18,15 +18,15 @@
       </div>
       <div class="info">
         {% if request.user.is_authenticated %}
-          <a href="#" class="d-block">{{request.user.username}}</a>
+          <a href="{% url 'profile' %}" class="d-block">{{ request.user.get_full_name|default:request.user.username }}</a>
         {% else %}
           <a href="#" class="d-block">Alexander Pierce</a>
-        {% endif %}        
+        {% endif %}
       </div>
     </div>
 
     <!-- SidebarSearch Form -->
-    <div class="form-inline">
+    <!--div class="form-inline">
       <div class="input-group" data-widget="sidebar-search">
         <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
         <div class="input-group-append">
@@ -35,7 +35,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </div-->
 
     <!-- Sidebar Menu -->
     <nav class="mt-2">

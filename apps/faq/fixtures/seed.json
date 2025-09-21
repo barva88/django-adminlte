@@ -1,0 +1,24 @@
+[
+  {
+    "model": "faq.faqqategory",
+    "pk": 1,
+    "fields": {
+      "name": "Cuenta y Facturación",
+      "slug": "cuenta-facturacion",
+      "description": "Preguntas sobre facturación y cuentas",
+      "is_active": true,
+      "ordering": 1
+    }
+  },
+  {
+    "model": "faq.faqqategory",
+    "pk": 2,
+    "fields": {
+      "name": "Uso de la plataforma",
+      "slug": "uso-plataforma",
+      "description": "Cómo usar la plataforma",
+      "is_active": true,
+      "ordering": 2
+    }
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "model": "support.supporttopic",
+    "pk": 1,
+    "fields": {"name": "Pagos y suscripciones", "slug": "pagos", "is_active": true, "ordering": 1}
+  },
+  {
+    "model": "support.supporttopic",
+    "pk": 2,
+    "fields": {"name": "Problemas técnicos", "slug": "tecnicos", "is_active": true, "ordering": 2}
+  }
+]

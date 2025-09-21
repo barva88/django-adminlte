@@ -56,6 +56,9 @@ INSTALLED_APPS = [
     # Serve UI pages
     "apps.pages",
 
+    # TRAUCK accounts extension
+    'apps.accounts_ext',
+
     # Dynamic DT
     "apps.dyn_dt",
 
@@ -64,19 +67,52 @@ INSTALLED_APPS = [
 
     # Charts
     "apps.charts",
+    # Exams app (TRAUCK) - minimal addition
+    'apps.exams',
+    # Communications app
+    'apps.communications',
+    # Common utilities (templatetags, helpers)
+    'apps.common',
+    # FAQ and Support
+    'apps.faq',
+    'apps.support',
 
     # Tooling API-GEN
     'rest_framework',            # Include DRF           # <-- NEW 
     'rest_framework.authtoken',  # Include DRF Auth      # <-- NEW   
 ]
 
+# --- allauth / sites (social login) ---
+INSTALLED_APPS += [
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    # socialaccount and providers temporarily disabled
+]
+
+# TRAUCK core models (commented - enable when needed)
+# 'apps.common',
+# 'apps.accounts_ext',
+# 'apps.companies',
+# 'apps.drivers',
+# 'apps.vehicles',
+# 'apps.operations',
+# 'apps.memberships',
+# 'apps.billing',
+# 'apps.documents',
+# 'apps.activity',
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    # allauth middleware (required)
+    'allauth.account.middleware.AccountMiddleware',
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Require login for admin_adminlte dashboards
+    'config.middleware.AdminDashboardLoginRequiredMiddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -102,6 +138,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
+
+# Site ID for django.contrib.sites (used by allauth)
+SITE_ID = int(os.environ.get('SITE_ID', 1))
 
 
 # Database
@@ -183,7 +222,40 @@ STATICFILES_DIRS = (
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_REDIRECT_URL = '/'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email backend - use SMTP when configured via .env, otherwise console for dev
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+# SMTP settings (placeholders read from .env)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 0) or 0)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = str2bool(os.environ.get('EMAIL_USE_TLS')) if os.environ.get('EMAIL_USE_TLS') is not None else True
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# django-allauth configuration
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+ACCOUNT_AUTHENTICATION_METHOD = os.environ.get('ACCOUNT_AUTHENTICATION_METHOD', 'username_email')
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = os.environ.get('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
 
 # ### DYNAMIC_DATATB Settings ###
 DYNAMIC_DATATB = {

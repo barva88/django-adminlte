@@ -1,0 +1,87 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} User Profile {% endblock title %}
+
+{% block content %}
+
+  <div class="content-wrapper">
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-3">
+            <div class="card card-primary card-outline">
+              <div class="card-body box-profile">
+                <div class="text-center">
+                  <img class="profile-user-img img-fluid img-circle" src="{% static 'dist/img/user4-128x128.jpg' %}" alt="User profile picture">
+                </div>
+
+                <h3 class="profile-username text-center">{{ request.user.get_full_name|default:request.user.username }}</h3>
+
+                <p class="text-muted text-center">{{ request.user.email }}</p>
+                <p class="text-center small text-muted">@{{ request.user.username }}</p>
+
+                <ul class="list-group list-group-unbordered mb-3">
+                  <li class="list-group-item">
+                    <b>Followers</b> <a class="float-right">1,322</a>
+                  </li>
+                </ul>
+
+                <a href="{% url 'profile_edit' %}" class="btn btn-primary btn-block"><b>Edit profile</b></a>
+                <form method="post" action="{% url 'profile_delete' %}" class="mt-2">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-block">Delete account</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-9">
+            <div class="card">
+              <div class="card-header p-2">
+                <ul class="nav nav-pills">
+                  <li class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Activity</a></li>
+                  <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">Settings</a></li>
+                </ul>
+              </div>
+              <div class="card-body">
+                <div class="tab-content">
+                  <div class="active tab-pane" id="activity">
+                    <!-- example static activity preserved -->
+                    <p>Activity placeholder.</p>
+                  </div>
+                  <div class="tab-pane" id="settings">
+                    <form method="post" action="{% url 'profile' %}">
+                      {% csrf_token %}
+                      <div class="form-group">
+                        <label for="id_username">Username</label>
+                        {{ form.username }}
+                      </div>
+                      <div class="form-group">
+                        <label for="id_first_name">First name</label>
+                        {{ form.first_name }}
+                      </div>
+                      <div class="form-group">
+                        <label for="id_last_name">Last name</label>
+                        {{ form.last_name }}
+                      </div>
+                      <div class="form-group">
+                        <label for="id_email">Email</label>
+                        {{ form.email }}
+                      </div>
+                      <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+{% endblock content %}

@@ -1,0 +1,94 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Exams</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Exams</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <!-- Default box -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">All Exams</h3>
+
+          <div class="card-tools">
+            <!-- could add tools here -->
+          </div>
+        </div>
+        <div class="card-body">
+
+          <form method="get" class="mb-3">
+            <div class="input-group">
+              <input type="text" name="q" class="form-control" placeholder="Search exams..." value="{{ q }}">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+              </div>
+            </div>
+          </form>
+
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for exam in exams %}
+              <tr>
+                <td>{{ exam.title }}</td>
+                <td>{{ exam.category }}</td>
+                <td><a href="{% url 'exams:exam_take' exam.id %}" class="btn btn-primary btn-sm">Take</a></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3">No exams found</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% if exams.has_other_pages %}
+          <nav>
+            <ul class="pagination">
+              {% if exams.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page={{ exams.previous_page_number }}">Previous</a></li>
+              {% endif %}
+              {% for i in exams.paginator.page_range %}
+              <li class="page-item {% if exams.number == i %}active{% endif %}"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+              {% endfor %}
+              {% if exams.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ exams.next_page_number }}">Next</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+
+        </div>
+        <!-- /.card-body -->
+        <div class="card-footer">
+        </div>
+        <!-- /.card-footer-->
+      </div>
+      <!-- /.card -->
+
+    </section>
+    <!-- /.content -->
+  </div>
+{% endblock %}

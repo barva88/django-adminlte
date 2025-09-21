@@ -1,0 +1,50 @@
+{% extends 'layouts/base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Ayuda / FAQ</h1>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Categorías</h3>
+          <div class="card-tools">
+            <form method="get" class="form-inline">
+              <div class="input-group input-group-sm">
+                <input type="text" name="q" value="{{ form.q.value|default:'' }}" class="form-control" placeholder="Buscar">
+                <div class="input-group-append">
+                  <button class="btn btn-default" type="submit">Buscar</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            {% for cat in categories %}
+            <div class="col-md-4">
+              <div class="card card-primary">
+                <div class="card-body">
+                  <h5><a href="{% url 'faq:category' cat.slug %}">{{ cat.name }}</a></h5>
+                  <p>{{ cat.description|default:'' }}</p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
