@@ -132,6 +132,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Expose Retell/embed settings to templates
+                "apps.common.context_processors.retell_settings",
             ],
         },
     },
@@ -277,3 +279,28 @@ REST_FRAMEWORK = {
     ],
 }
 ########################################
+
+# --- Retell AI / communications settings ---
+RETELL_API_URL = os.environ.get('RETELL_API_URL')
+RETELL_API_KEY = os.environ.get('RETELL_API_KEY')
+RETELL_AGENT_ID = os.environ.get('RETELL_AGENT_ID')
+RETELL_API_MODEL = os.environ.get('RETELL_API_MODEL')
+
+# Optional phone number for the call FAB (E.164 format, e.g. +12137774444)
+PHONE_NUMBER = os.environ.get('PHONE_NUMBER')
+
+# Retell widget embed support (optional) - read from environment
+RETELL_EMBED_URL = os.environ.get('RETELL_EMBED_URL', '')  # script URL provided by Retell
+RETELL_EMBED_ENABLED = str2bool(os.environ.get('RETELL_EMBED_ENABLED')) if os.environ.get('RETELL_EMBED_ENABLED') is not None else False
+RETELL_EMBED_OPEN_FN = os.environ.get('RETELL_EMBED_OPEN_FN', '')  # optional dot-path to global open function, e.g. 'retellWidget.open'
+
+# Public key for Retell widget embed (do NOT use RETELL_API_KEY here)
+RETELL_PUBLIC_KEY = os.environ.get('RETELL_PUBLIC_KEY', '')
+
+# Disable client-side reCAPTCHA usage for the Retell embed (useful for local/dev)
+RETELL_DISABLE_RECAPTCHA = str2bool(os.environ.get('RETELL_DISABLE_RECAPTCHA')) if os.environ.get('RETELL_DISABLE_RECAPTCHA') is not None else False
+
+# Retell widget embed support (optional)
+# (embed settings removed — restored original configuration)
+# Development: mock Retell responses when set to a truthy value
+RETELL_MOCK = str2bool(os.environ.get('RETELL_MOCK')) if os.environ.get('RETELL_MOCK') is not None else False

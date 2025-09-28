@@ -17,6 +17,15 @@
 
 
   {% block extrastyle %}{% endblock extrastyle %}
+   <script
+      id="retell-widget"
+      src="https://dashboard.retellai.com/retell-widget.js"
+      data-public-key="public_key_85f48764023e1d616bda9"
+      data-agent-id="agent_ad8e44d829de2ccf1c2de3b389"
+      data-agent-version="0"
+      data-title="Chat with us!"
+      
+    ></script>
 </head>
 <body class="{% block bodyclass %}{% endblock bodyclass %}">
 
@@ -57,7 +66,6 @@
   
   {% include 'includes/scripts.html' %}
   {% block extra_scripts %}{% endblock extra_scripts %}
-
 
 </body>
 </html>
