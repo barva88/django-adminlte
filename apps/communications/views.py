@@ -1150,6 +1150,21 @@ class CommSessionListView(ListView):
             qs = qs.filter(status=status)
         if direction:
             qs = qs.filter(direction=direction)
+        # Backfill tokens for objects in first page if missing
+        try:
+            sample = list(qs[:self.paginate_by])
+            dirty = []
+            for s in sample:
+                if s.tokens_prompt == 0 and s.tokens_completion == 0 and s.transcript_excerpt:
+                    s.tokens_prompt = max(1, len(s.transcript_excerpt.split()))
+                    dirty.append(s)
+            if dirty:
+                from django.db import transaction
+                with transaction.atomic():
+                    for o in dirty:
+                        o.save(update_fields=['tokens_prompt','updated_at'])
+        except Exception:
+            pass
         return qs
 
     def get_context_data(self, **kwargs):
@@ -1609,6 +1624,13 @@ def _ingest_chat_session(item: dict):
             'metadata': item.get('metadata') or {},
             'provider_payload': item,
         }
+    # Simple heuristic de tokens (si API no provee usage todavía): contar palabras del extracto
+    try:
+        if defaults.get('transcript_excerpt') and not defaults.get('tokens_prompt'):
+            approx_tokens = max(1, len((defaults['transcript_excerpt'] or '').split()))
+            defaults['tokens_prompt'] = approx_tokens
+    except Exception:
+        pass
     obj, created = CommSession.objects.get_or_create(retell_conversation_id=conv_id, defaults=defaults)
     if not created:
         for f in ('status','ended_at','duration_sec','message_count','intent','transcript_excerpt','metadata'):
@@ -1616,6 +1638,12 @@ def _ingest_chat_session(item: dict):
                 val = defaults.get(f)
                 if val is not None and val != '':
                     setattr(obj, f, val)
+        # Backfill de tokens si aún están en cero y ya tenemos transcript
+        try:
+            if (not getattr(obj, 'tokens_prompt', 0)) and (obj.transcript_excerpt):
+                obj.tokens_prompt = max(1, len(obj.transcript_excerpt.split()))
+        except Exception:
+            pass
         obj.save()
     return obj, created
 
@@ -1677,12 +1705,23 @@ def _ingest_call_session(item: dict):
         'metadata': item.get('metadata') or {},
         'provider_payload': item,
     }
+    # Heurística igual para llamadas (usa transcript_excerpt)
+    try:
+        if defaults.get('transcript_excerpt') and not defaults.get('tokens_prompt'):
+            defaults['tokens_prompt'] = max(1, len((defaults['transcript_excerpt'] or '').split()))
+    except Exception:
+        pass
     obj, created = CommSession.objects.get_or_create(retell_call_id=call_id, defaults=defaults)
     if not created:
         for f in ('status','ended_at','duration_sec','message_count','transcript_excerpt','metadata'):
             val = defaults.get(f)
             if val:
                 setattr(obj, f, val)
+        try:
+            if (not getattr(obj, 'tokens_prompt', 0)) and obj.transcript_excerpt:
+                obj.tokens_prompt = max(1, len(obj.transcript_excerpt.split()))
+        except Exception:
+            pass
         obj.save()
     return obj, created
 
