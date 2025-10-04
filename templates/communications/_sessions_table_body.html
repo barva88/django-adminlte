@@ -1,0 +1,44 @@
+{% for s in sessions %}
+  <tr class="session-row" data-session-id="{{ s.id }}" style="cursor:pointer;">
+    <td>{{ s.started_at|date:'Y-m-d H:i' }}</td>
+    <td>
+      {% if s.channel == 'voice' %}
+        <span class="badge badge-info">llamada</span>
+      {% elif s.channel == 'web' %}
+        <span class="badge badge-secondary">chat</span>
+      {% elif s.channel == 'whatsapp' %}
+        <span class="badge badge-success">WhatsApp</span>
+      {% else %}
+        <span class="badge badge-light">{{ s.get_channel_display }}</span>
+      {% endif %}
+    </td>
+    <td>
+      {% if s.direction == 'inbound' %}
+        <span class="badge badge-primary">{{ s.get_direction_display }}</span>
+      {% else %}
+        <span class="badge badge-warning">{{ s.get_direction_display }}</span>
+      {% endif %}
+    </td>
+    <td>
+      {% if s.status == 'completed' %}
+        <span class="badge badge-success">{{ s.get_status_display }}</span>
+      {% elif s.status == 'ongoing' %}
+        <span class="badge badge-info">{{ s.get_status_display }}</span>
+      {% elif s.status == 'failed' %}
+        <span class="badge badge-danger">{{ s.get_status_display }}</span>
+      {% elif s.status == 'missed' %}
+        <span class="badge badge-warning">{{ s.get_status_display }}</span>
+      {% else %}
+        <span class="badge badge-secondary">{{ s.get_status_display }}</span>
+      {% endif %}
+    </td>
+    <td>{% if s.duration_sec %}{{ s.duration_sec }}s{% else %}-{% endif %}</td>
+    <td><span class="badge badge-light">{{ s.message_count }}</span></td>
+    <td>{{ s.intent|default:'-' }}</td>
+    <td style="max-width:420px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ s.transcript_excerpt|default:'-' }}</td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="8"><div class="text-center text-muted py-4">No hay comunicaciones.</div></td>
+  </tr>
+{% endfor %}

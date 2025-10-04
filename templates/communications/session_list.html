@@ -1,0 +1,413 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block title %}Mis comunicaciones{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">Comunicaciones</h1>
+          <p class="text-muted mb-0">Historial de sesiones de comunicación</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <form method="get" class="mb-2 mb-sm-0">
+            <div class="form-row">
+              <div class="col-12 col-md-6 mb-2 mb-md-0">
+                <div class="input-group">
+                  <input type="text" name="q" class="form-control" placeholder="Buscar (ID, intención, resumen, identidades)" value="{{ q }}">
+                  <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                    <a href="?" class="btn btn-secondary">Limpiar</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-row">
+                  <div class="col-12 col-sm-4 mb-2 mb-sm-0">
+                    <select name="channel" class="form-control">
+                      <option value="">Canal (todos)</option>
+                      {% for val,label in channels %}
+                        <option value="{{ val }}" {% if sel_channel == val %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12 col-sm-4 mb-2 mb-sm-0">
+                    <select name="direction" class="form-control">
+                      <option value="">Dirección (todas)</option>
+                      {% for val,label in directions %}
+                        <option value="{{ val }}" {% if sel_direction == val %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <select name="status" class="form-control">
+                      <option value="">Estado (todos)</option>
+                      {% for val,label in statuses %}
+                        <option value="{{ val }}" {% if sel_status == val %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </form>
+            <div class="mb-2 mb-sm-0">
+              <button id="btn-sync-retell" type="button" class="btn btn-success">
+                <i class="fas fa-sync-alt mr-1"></i> Sincronizar con Retell
+              </button>
+              <button id="btn-view-last-log" type="button" class="btn btn-outline-secondary ml-2 d-none">
+                <i class="fas fa-file-alt mr-1"></i> Ver último log
+              </button>
+              {% if request.user.is_superuser %}
+              <button id="btn-view-flows" type="button" class="btn btn-outline-info ml-2">
+                <i class="fas fa-list mr-1"></i> Ver conversation flows
+              </button>
+              <button id="btn-simulate-web" type="button" class="btn btn-outline-success ml-2">
+                <i class="fas fa-magic mr-1"></i> Crear conversación WEB de prueba
+              </button>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead>
+                <tr>
+                  <th style="min-width:120px;">Inicio</th>
+                  <th>Canal</th>
+                  <th>Dirección</th>
+                  <th>Estado</th>
+                  <th>Duración</th>
+                  <th>Msgs</th>
+                  <th>Intent</th>
+                  <th>Resumen</th>
+                </tr>
+              </thead>
+              <tbody id="sessions-table-body">
+                {% include 'communications/_sessions_table_body.html' %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if is_paginated %}
+          <div class="d-flex justify-content-end mt-3">
+            <ul class="pagination pagination-sm m-0">
+              {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1{% if q %}&q={{ q }}{% endif %}{% if sel_channel %}&channel={{ sel_channel }}{% endif %}{% if sel_status %}&status={{ sel_status }}{% endif %}{% if sel_direction %}&direction={{ sel_direction }}{% endif %}">&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if sel_channel %}&channel={{ sel_channel }}{% endif %}{% if sel_status %}&status={{ sel_status }}{% endif %}{% if sel_direction %}&direction={{ sel_direction }}{% endif %}">&lsaquo;</a></li>
+              {% endif %}
+              <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+              {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if sel_channel %}&channel={{ sel_channel }}{% endif %}{% if sel_status %}&status={{ sel_status }}{% endif %}{% if sel_direction %}&direction={{ sel_direction }}{% endif %}">&rsaquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if sel_channel %}&channel={{ sel_channel }}{% endif %}{% if sel_status %}&status={{ sel_status }}{% endif %}{% if sel_direction %}&direction={{ sel_direction }}{% endif %}">&raquo;</a></li>
+              {% endif %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<!-- Modal: Detalle de conversación / transcript -->
+<div class="modal fade" id="sessionDetailModal" tabindex="-1" role="dialog" aria-labelledby="sessionDetailLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sessionDetailLabel">Detalle de la conversación</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4">
+            <ul class="list-group mb-3" id="sessionMeta">
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Canal</span><span id="metaChannel" class="badge badge-secondary">-</span></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Dirección</span><span id="metaDirection" class="badge badge-warning">-</span></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Estado</span><span id="metaStatus" class="badge badge-info">-</span></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Inicio</span><span id="metaStarted">-</span></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Fin</span><span id="metaEnded">-</span></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Duración</span><span id="metaDuration">-</span></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"><span>Intent</span><span id="metaIntent">-</span></li>
+              <li class="list-group-item"><small class="text-muted">Desde</small><div id="metaFrom" class="font-weight-bold">-</div></li>
+              <li class="list-group-item"><small class="text-muted">Hacia</small><div id="metaTo" class="font-weight-bold">-</div></li>
+              <li class="list-group-item"><small class="text-muted">Resumen</small><div id="metaExcerpt" class="mt-1">-</div></li>
+            </ul>
+          </div>
+          <div class="col-md-8">
+            <div class="card direct-chat direct-chat-primary">
+              <div class="card-header">
+                <h3 class="card-title">Transcript</h3>
+                <div class="card-tools">
+                  <span class="badge badge-light" id="metaMsgCount">0</span>
+                </div>
+              </div>
+              <div class="card-body" style="max-height:60vh; overflow:auto;">
+                <div class="direct-chat-messages" id="chatMessages"></div>
+              </div>
+              <div class="card-footer" style="display:none;">
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="Escribe mensaje..." disabled>
+                  <span class="input-group-append">
+                    <button class="btn btn-primary" disabled>Enviar</button>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% if request.user.is_superuser %}
+<!-- Modal para mostrar conversation flows -->
+<div class="modal fade" id="flowsModal" tabindex="-1" role="dialog" aria-labelledby="flowsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="flowsModalLabel">Conversation Flows</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center mb-2">
+          <label class="mr-2 mb-0">Límite</label>
+          <input type="number" id="flowsLimit" class="form-control form-control-sm" style="width:100px" value="10" min="1" max="1000" />
+          <button id="btn-reload-flows" class="btn btn-sm btn-primary ml-2">Recargar</button>
+        </div>
+        <pre id="flowsJson" style="max-height:60vh; overflow:auto; background:#111; color:#bde; padding:12px; border-radius:6px;">
+        </pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+  </div>
+{% endif %}
+<script>
+  (function(){
+  var btn = document.getElementById('btn-sync-retell');
+  var tableBody = document.getElementById('sessions-table-body');
+    var btnLog = document.getElementById('btn-view-last-log');
+    var rows = document.querySelectorAll('tr.session-row');
+    function openSessionModal(){
+      try { if (window.jQuery && window.jQuery('#sessionDetailModal').modal) { window.jQuery('#sessionDetailModal').modal('show'); return; } } catch(e){}
+      var m = document.getElementById('sessionDetailModal');
+      if (m) {
+        m.classList.add('show'); m.style.display='block'; m.removeAttribute('aria-hidden');
+        var backdrop = document.createElement('div'); backdrop.className='modal-backdrop fade show'; document.body.appendChild(backdrop);
+      }
+    }
+    function renderMsg(container, msg, invert){
+      var role = (msg.role || '').toString().toLowerCase();
+      var isAgent = (role === 'assistant' || role === 'agent' || role === 'bot' || role === 'system');
+      var right = invert ? !isAgent : isAgent;
+      var wrap = document.createElement('div');
+      wrap.className = 'direct-chat-msg' + (right ? ' right' : '');
+      var info = document.createElement('div'); info.className='direct-chat-infos clearfix';
+      var name = document.createElement('span'); name.className = 'direct-chat-name ' + (right ? 'float-right' : 'float-left');
+      var who = invert ? (!isAgent ? 'Agente' : 'Usuario') : (isAgent ? 'Agente' : 'Usuario');
+      name.textContent = who;
+      var ts = document.createElement('span'); ts.className = 'direct-chat-timestamp ' + (right ? 'float-left' : 'float-right');
+      ts.textContent = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : '';
+      info.appendChild(name); info.appendChild(ts);
+      var avatar = document.createElement('img');
+      avatar.className='direct-chat-img';
+  var useAgentAvatar = invert ? !isAgent : isAgent;
+      if (useAgentAvatar) {
+        // Inline SVG with a bold "T" as the Retell avatar
+        var svg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" ry="64" fill="#3c8dbc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" fill="#ffffff">T</text></svg>');
+        avatar.src = 'data:image/svg+xml;utf8,' + svg;
+      } else {
+        // User photo (placeholder)
+        avatar.src = '/static/dist/img/user1-128x128.jpg';
+      }
+  var safeContent = (msg.content || '').toString().trim();
+  if (!safeContent) { safeContent = useAgentAvatar ? '[Respuesta del agente sin texto]' : '[Mensaje del usuario sin texto]'; }
+  var text = document.createElement('div'); text.className='direct-chat-text'; text.textContent = safeContent;
+      wrap.appendChild(info); wrap.appendChild(avatar); wrap.appendChild(text);
+      container.appendChild(wrap);
+    }
+  function loadSession(pk){
+      var url = '/api/communications/sessions/' + pk + '/detail/';
+      var chat = document.getElementById('chatMessages');
+      if (chat) chat.innerHTML = '';
+      // Reset meta
+      var set = function(id, val){ var el = document.getElementById(id); if (el) el.textContent = val || '-'; };
+      set('metaChannel','-'); set('metaDirection','-'); set('metaStatus','-'); set('metaStarted','-'); set('metaEnded','-'); set('metaDuration','-'); set('metaIntent','-'); set('metaFrom','-'); set('metaTo','-'); set('metaExcerpt','-'); set('metaMsgCount','0');
+      openSessionModal();
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r){ return r.json(); })
+  .then(function(data){
+          if (!data || !data.ok) return;
+          var s = data.session || {};
+          set('metaChannel', s.channel);
+          set('metaDirection', s.direction);
+          set('metaStatus', s.status);
+          set('metaStarted', s.started_at ? new Date(s.started_at).toLocaleString() : '-');
+          set('metaEnded', s.ended_at ? new Date(s.ended_at).toLocaleString() : '-');
+          set('metaDuration', (s.duration_sec ? (s.duration_sec + 's') : '-'));
+          set('metaIntent', s.intent || '-');
+          set('metaFrom', s.from_identity || '-');
+          set('metaTo', s.to_identity || '-');
+          set('metaExcerpt', s.transcript_excerpt || '-');
+          var msgs = s.messages || [];
+          set('metaMsgCount', String(msgs.length));
+          if (chat) {
+            // Heuristic: in outbound voice calls, agent usually speaks first.
+            var invert = false;
+            if ((s.direction === 'outbound') && msgs.length > 0) {
+              var firstRole = (msgs[0].role || '').toString().toLowerCase();
+              if (firstRole === 'user') { invert = true; }
+            }
+            msgs.forEach(function(m){ renderMsg(chat, m, invert); });
+            chat.scrollTop = chat.scrollHeight;
+          }
+        })
+        .catch(function(err){ console.error('detail error', err); });
+    }
+    function bindRowClicks(){
+      var rows = document.querySelectorAll('tr.session-row');
+      rows.forEach(function(tr){ tr.addEventListener('click', function(){ var pk = this.getAttribute('data-session-id'); if (pk) loadSession(pk); }); });
+    }
+    bindRowClicks();
+    if (!btn) return;
+  // Show log button only to superusers (server-side check below)
+    {% if request.user.is_superuser %}
+    btnLog.classList.remove('d-none');
+    btnLog.addEventListener('click', function(){
+      fetch('/api/communications/retell/sync-latest-log/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r){ return r.json().catch(function(){ return {}; }); })
+        .then(function(data){
+          try {
+            alert('Último sync: ' + (data.created_at || '-') + '\nStatus: ' + (data.status_code || '-') + ' (' + (data.duration_ms || 0) + 'ms)\n\nPayload:\n' + JSON.stringify(data.payload || data, null, 2).slice(0, 2000));
+          } catch(e) {
+            alert('No se pudo mostrar el log.');
+          }
+        })
+        .catch(function(){ alert('No se pudo obtener el log.'); });
+    });
+    {% endif %}
+
+    {% if request.user.is_superuser %}
+    var btnFlows = document.getElementById('btn-view-flows');
+  var btnSimulate = document.getElementById('btn-simulate-web');
+    var flowsModal = document.getElementById('flowsModal');
+    var flowsJson = document.getElementById('flowsJson');
+    var flowsLimit = document.getElementById('flowsLimit');
+    var btnReloadFlows = document.getElementById('btn-reload-flows');
+
+    function openModal() {
+      try {
+        if (window.jQuery && window.jQuery('#flowsModal').modal) {
+          window.jQuery('#flowsModal').modal('show');
+          return;
+        }
+      } catch (e) {}
+      if (flowsModal) {
+        flowsModal.classList.add('show');
+        flowsModal.style.display = 'block';
+        flowsModal.removeAttribute('aria-hidden');
+        var backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+      }
+    }
+
+    function loadFlows(limitVal) {
+      var limit = parseInt(limitVal || (flowsLimit ? flowsLimit.value : 10), 10) || 10;
+      var url = '/api/communications/retell/list-conversation-flows/?limit=' + encodeURIComponent(limit);
+      flowsJson.textContent = 'Cargando…';
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r){
+          return r.text().then(function(t){
+            var payload = t;
+            try { payload = JSON.parse(t); } catch(e) {}
+            return { status: r.status, body: payload };
+          });
+        })
+        .then(function(result){
+          var pretty = (typeof result.body === 'string') ? result.body : JSON.stringify(result.body, null, 2);
+          flowsJson.textContent = 'Status: ' + result.status + '\n\n' + pretty;
+        })
+        .catch(function(err){
+          flowsJson.textContent = 'Error: ' + err;
+        });
+    }
+
+    if (btnFlows) {
+      btnFlows.addEventListener('click', function(){
+        openModal();
+        loadFlows();
+      });
+    }
+    if (btnReloadFlows) {
+      btnReloadFlows.addEventListener('click', function(){ loadFlows(); });
+    }
+    if (btnSimulate) {
+      btnSimulate.addEventListener('click', function(){
+        btnSimulate.disabled = true;
+        fetch('/api/communications/retell/simulate-conversation/', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function(r){ return r.json().catch(function(){ return {}; }); })
+          .then(function(data){
+            if (data && data.ok) {
+              alert('Conversación WEB creada: ' + (data.retell_conversation_id || '')); window.location.reload();
+            } else {
+              alert('No se pudo crear la conversación de prueba');
+            }
+          })
+          .catch(function(){ alert('Error creando conversación.'); })
+          .finally(function(){ btnSimulate.disabled = false; });
+      });
+    }
+    {% endif %}
+    btn.addEventListener('click', function(){
+      btn.disabled = true;
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sincronizando…';
+  fetch('/api/communications/retell/sync-now/?compact=1', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r){
+          if (r.status === 403) {
+            alert('No tienes permisos para sincronizar. Pide a un administrador ejecutarlo.');
+            return { ok:false, status:r.status };
+          }
+          return r.json().catch(function(){ return { ok:false, error:'Respuesta no JSON', status:r.status }; });
+        })
+        .then(function(data){
+          if (data && data.ok) {
+            // Reload just table body
+            fetch('/api/communications/sessions/partial/table/?_ts=' + Date.now(), { headers: { 'X-Requested-With':'XMLHttpRequest' } })
+              .then(function(r){ return r.text(); })
+              .then(function(html){ tableBody.innerHTML = html; bindRowClicks(); })
+              .catch(function(){ /* silent */ });
+          } else {
+            alert('Sync incompleto');
+          }
+          btn.disabled = false;
+          btn.innerHTML = orig;
+        })
+        .catch(function(err){
+          console.error('Sync error', err);
+          btn.disabled = false; btn.innerHTML = orig; alert('Error en sync');
+        });
+    });
+  })();
+</script>
+{% endblock %}

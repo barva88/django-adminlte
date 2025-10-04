@@ -16,3 +16,6 @@ env
 node_modules
 .venv/
 db.sqlite3
+
+# Internal project-only docs
+docs/PROJECT_DOSSIER.md
